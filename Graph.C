@@ -1,5 +1,6 @@
 #include "Graph.H"
 #include "Person.H"
+#include "Generator.H"
 #include <iostream>
 #include <vector>
 
@@ -7,7 +8,11 @@ using namespace std;
 
 
 void Graph::ReadInData() {
-// Read in all the info about profs and students  and create the vectors containing them.
+// Read in all the info about profs and students and create the vectors containing them.
+  Generator g (3, 3, 0, 10);
+
+  Professors = g.professors;
+  Students = g.students;
 }
 
 void Graph::MakeScheduleGreedily() {
@@ -24,11 +29,11 @@ ostream& operator<<(ostream& os, const Graph& x)
 {
   os << endl;
   os << " Professors:" << endl;
-  for(int i=0; i< x.Professors.size(); i++) os << x.Professors[i] << " ";
+  for(int i=0; i< x.Professors.size(); i++) os << x.Professors[i];
   os << endl;
 
   os << " Students:" << endl;
-  for(int i=0; i< x.Students.size(); i++) os << x.Students[i] << " ";
+  for(int i=0; i< x.Students.size(); i++) os << x.Students[i];
   os << endl;
 
   os << " Meetings:" << endl;
