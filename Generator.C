@@ -13,8 +13,8 @@ Generator::Generator(int numProfs, int numStudents, double availabilityProportio
 	this->timeMin = timeMin;
 	this->timeMax = timeMax;
 
-  	numTimes = (timeMax - timeMin) * availabilityProportion;
-  	this->numDesires = numDesires;
+	numTimes = (timeMax - timeMin) * availabilityProportion;
+	this->numDesires = numDesires;
 
 	IdRanges[0] = 0;
 	IdRanges[1] = numProfs;
@@ -25,6 +25,7 @@ Generator::Generator(int numProfs, int numStudents, double availabilityProportio
 }
 
 vector<Person> Generator::generatePeople(bool professor, int numPeople) {
+// Generate a random group of people under specified parameters
 	vector<Person> people;
 	
 	for(int i=0; i<numPeople; i++){
@@ -39,13 +40,12 @@ vector<Person> Generator::generatePeople(bool professor, int numPeople) {
 		else person_i.Desired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
 
 		people.push_back(person_i);
-		// cout << person_i << endl;
 	}
 	return people;
 }
 
 vector<int> Generator::randomUniqueNums(int n, int min, int max) {
-	// generate n random numbers in inclusive [min, max]
+// Generate n sorted random numbers in inclusive [min, max] without duplicates
 	vector<int> nums;
 
 	for(int i=0; i<n; i++) {
@@ -57,9 +57,7 @@ vector<int> Generator::randomUniqueNums(int n, int min, int max) {
 				duplicate = true;
 				break;
 			}
-
 		}
-				
 		if(duplicate) i--;
 		else nums.push_back(randNum);
 	}

@@ -1,16 +1,17 @@
 #ifndef _GRAPH_H
 #define _GRAPH_H
-#include <vector>
 #include "Person.H"
+#include "Generator.H"
+
+#include <vector>
 
 using namespace std;
 
 class Graph {
 
 public:
-  void ReadInData(); // Delete people in Desired who do not mutually desire you.
-  void Prune();
-  void CrossCheck(int profId, vector<int> &profDesires);
+  void ReadInData(Generator gen); // Load professor/student vectors
+  void Prune(); // Delete people in Desired who do not mutually desire you.
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
   void HillClimb(); // 
 
@@ -21,10 +22,7 @@ private:
   
 };
 
-ostream& operator<<(ostream& os, const Graph& );
+ostream& operator<<(ostream& os, const Graph&);
 
 
 #endif
-
-
-
