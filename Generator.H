@@ -10,17 +10,20 @@ using namespace std;
 class Generator {
 
 public:
-  Generator (int numProfs, int numStuds, int timeMin, int timeMax);
+  Generator (
+    int numProfs, int numStudents, 
+    double availabilityProportion, int numDesires,
+    int timeMin, int timeMax
+  );
 
   vector<Person> professors, students;
-  int tMin, tMax;
-  int IdRanges[3];
-;
+
 private:
   vector<Person> generatePeople(bool professor, int numPeople);
-  vector<int> randomHours(int numTimes);
-  vector<int> randomIds(int numIds, int minIdRange, int maxIdRange);
   vector<int> randomUniqueNums(int n, int min, int max);
+  int timeMin, timeMax;
+  int numTimes, numDesires;
+  int IdRanges[3];
 };
 
 ostream& operator<<(ostream& os, const Generator&);

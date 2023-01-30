@@ -19,7 +19,7 @@ ostream& operator<<(ostream& os, const Person& x)
   os << "  Hours: ";
   for(int i=0; i< x.Hours.size(); i++) os << x.Hours[i] << " ";
   os << endl;
-
+  
   os << "  Desired: ";
   for(int i=0; i< x.Desired.size(); i++) os << x.Desired[i] << " ";
   os << endl;
