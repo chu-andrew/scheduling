@@ -27,17 +27,17 @@ Generator::Generator(int numProfs, int numStudents, double availabilityProportio
 vector<Person> Generator::generatePeople(bool professor, int numPeople) {
 // Generate a random group of people under specified parameters
 	vector<Person> people;
-	
-	for(int i=0; i<numPeople; i++){
+
+	for (int i = 0; i < numPeople; i++) {
 		Person person_i;
 		int minIdNum = professor ? IdRanges[0] : IdRanges[1];
 
 		person_i.professor = professor;
 		person_i.Id = minIdNum + i;
 		person_i.Hours = randomUniqueNums(numTimes, timeMin, timeMax);
-		for(int j=0; j<numTimes; j++) person_i.hoursUsed.push_back(false); // initialize all availabilities to unfilled
-		
-		if(professor) person_i.Desired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
+		for (int j = 0; j < numTimes; j++) person_i.hoursUsed.push_back(false); // initialize all availabilities to unfilled
+
+		if (professor) person_i.Desired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
 		else person_i.Desired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
 
 		people.push_back(person_i);
@@ -49,17 +49,17 @@ vector<int> Generator::randomUniqueNums(int n, int min, int max) {
 // Generate n sorted random numbers in inclusive [min, max] without duplicates
 	vector<int> nums;
 
-	for(int i=0; i<n; i++) {
+	for (int i = 0; i < n; i++) {
 		int randNum = min + (rand() % (max - min + 1));
 
 		bool duplicate = false;
-		 for(int j=0; j<nums.size(); j++){
-			if(nums[j] == randNum) {
+		for (int j = 0; j < nums.size(); j++) {
+			if (nums[j] == randNum) {
 				duplicate = true;
 				break;
 			}
 		}
-		if(duplicate) i--;
+		if (duplicate) i--;
 		else nums.push_back(randNum);
 	}
 

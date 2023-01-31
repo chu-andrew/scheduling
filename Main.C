@@ -16,7 +16,7 @@ int main() {
     0.25, 2, // availabilityProportion, numDesires
     0, 10 // timeMin, timeMax
   );
-  
+
   Graph G;
   G.ReadInData(gen); // Fill up the Professors and Students vectors.
   cout << "Initial population" << G;

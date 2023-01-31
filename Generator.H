@@ -12,7 +12,7 @@ class Generator {
 
 public:
   Generator (
-    int numProfs, int numStudents, 
+    int numProfs, int numStudents,
     double availabilityProportion, // proportion of everybody's time range in which a person is available
     int numDesires, // number of desired meetings
     int timeMin, int timeMax // earliest/latest available times among all people
