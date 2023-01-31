@@ -16,6 +16,7 @@ public:
   bool professor;
   int Id;                  // Identification number
   vector<int> Hours;       // Available meeting hours
+  vector<bool> hoursUsed;     // Indicate hours that are being occupied with meetings
   vector<int> Desired;     // Ids of People this person wants to meet
   vector<pair<int,int> > MeetPersonAndTime; // Pairs of <Person's Id, Meet time> of an actual scheduled meeting  
   string Name;             // e.g. "John Doe"
