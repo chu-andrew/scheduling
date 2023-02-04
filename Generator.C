@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
+#include <assert.h>
 
 
 using namespace std;
@@ -15,6 +16,7 @@ Generator::Generator(int numProfs, int numStudents, double availabilityProportio
 
 	numTimes = (timeMax - timeMin) * availabilityProportion;
 	this->numDesires = numDesires;
+	assert(numDesires <= numProfs && numDesires <= numStudents);
 
 	IdRanges[0] = 0;
 	IdRanges[1] = numProfs;
@@ -34,8 +36,9 @@ vector<Person> Generator::generatePeople(bool professor, int numPeople) {
 
 		person_i.professor = professor;
 		person_i.Id = minIdNum + i;
+
 		person_i.Hours = randomUniqueNums(numTimes, timeMin, timeMax);
-		for (int j = 0; j < numTimes; j++) person_i.hoursUsed.push_back(false); // initialize all availabilities to unfilled
+		person_i.hoursUsed.assign(numTimes, false); // initialize all availabilities to unfilled
 
 		if (professor) person_i.Desired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
 		else person_i.Desired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);

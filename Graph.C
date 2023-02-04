@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <random>
 
 using namespace std;
 
@@ -16,32 +18,57 @@ void Graph::ReadInData(Generator gen) {
 
 void Graph::Prune() {
 // Remove non-mutual meeting desires
-  for (int i = 0; i < Professors.size(); i++) {
-    Professors[i].RemoveUnreciprocatedDesires(Students, Professors.size());
+  for (Person& professor : Professors) {
+    professor.RemoveUnreciprocatedDesires(Students, Professors.size());
   }
-  for (int i = 0; i < Students.size(); i++) {
-    Students[i].RemoveUnreciprocatedDesires(Professors);
+  for (Person& student : Students) {
+    student.RemoveUnreciprocatedDesires(Professors);
+  }
+}
+
+void Graph::FillComparisonOrder() {
+  for (Person& prof : Professors) {
+    for (int studentId : prof.Desired) {
+      comparisonOrder.push_back(pair(prof.Id, studentId));
+    }
   }
 }
 
 void Graph::MakeScheduleGreedily() {
 // Fill in pairs in MeetPersonAndTime greedily until get stuck.
-  for (int i = 0; i < Professors.size(); i++) {
-    Person* prof = &Professors[i];
-    for (int j = 0; j < prof->Desired.size(); j++) {
-      Person* student = &Students[prof->Desired[j] - Professors.size()];
+  for (Person& prof : Professors) {
+    for (int studentId : prof.Desired) {
+      Person* student = &Students[studentId - Professors.size()];
 
-      int commonTime = CrossCheckSchedules(prof->Hours, student->Hours, prof->hoursUsed, student->hoursUsed);
-      // cout << prof->Id << " " << student->Id << " " << commonTime << endl;
+      int commonTime = CrossCheckSchedules(prof.Hours, student->Hours, prof.hoursUsed, student->hoursUsed);
       if (commonTime >= 0) {
-        prof->MeetPersonAndTime.push_back(pair(student->Id, commonTime));
-        student->MeetPersonAndTime.push_back(pair(prof->Id, commonTime));
+        prof.MeetPersonAndTime.push_back(pair(student->Id, commonTime));
+        student->MeetPersonAndTime.push_back(pair(prof.Id, commonTime));
       }
     }
   }
 }
 
-int Graph::CrossCheckSchedules(vector<int>& aTimes, vector<int>& bTimes, vector<bool>& aUsed, vector<bool>& bUsed) {
+void Graph::MakeScheduleGreedilyRandomly() {
+  auto rng = default_random_engine {};
+  shuffle(begin(comparisonOrder), end(comparisonOrder), rng);
+
+  for(pair<int, int> compare : comparisonOrder) {
+    cout << compare.first << " " << compare.second << endl;
+
+    Person& prof = Professors[compare.first];
+    Person& student = Students[compare.second - Professors.size()];
+
+    int commonTime = CrossCheckSchedules(prof.Hours, student.Hours, prof.hoursUsed, student.hoursUsed);
+    if (commonTime >= 0) {
+      prof.MeetPersonAndTime.push_back(pair(student.Id, commonTime));
+      student.MeetPersonAndTime.push_back(pair(prof.Id, commonTime));
+    }
+  }
+}
+
+int Graph::CrossCheckSchedules(
+  vector<int>& aTimes, vector<int>& bTimes, vector<bool>& aUsed, vector<bool>& bUsed) {
   for (int i = 0; i < aTimes.size(); i++) {
     if (aUsed[i]) continue;
     for (int j = 0; j < bTimes.size(); j++) {
@@ -56,8 +83,21 @@ int Graph::CrossCheckSchedules(vector<int>& aTimes, vector<int>& bTimes, vector<
   return -1;
 }
 
+double Graph::Score() {
+  int fulfilled = 0;
+  int desired = 0;
+
+  for (Person& student : Students) {
+    fulfilled += student.MeetPersonAndTime.size();
+    desired += student.Desired.size();
+  }
+  // cout << "total: " << fulfilled << "/" << desired << endl;
+  return fulfilled / (double) desired;
+}
+
 void Graph::HillClimb() {
 // Try to increase the number of pairs in MeetPersonAndTime
+  cout << Score() << endl;
 }
 
 // Use this for debugging to print out all profs and students in the graph.

@@ -19,12 +19,10 @@ void Person::RemoveUnreciprocatedDesires(vector<Person>& B, int numProfs) {
     if (professor) desiredB = B[desiredBId - numProfs];
     else desiredB = B[desiredBId];
 
-    vector<int> bDesires = desiredB.Desired;
-
     // check for mutual desires
     bool mutual = false;
-    for (int j = 0; j < bDesires.size(); j++) {
-      if (bDesires[j] == Id) {
+    for (int desire : desiredB.Desired) {
+      if (desire == Id) {
         mutual = true;
         break;
       }
