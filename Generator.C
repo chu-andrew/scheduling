@@ -38,8 +38,6 @@ vector<Person> Generator::generatePeople(bool professor, int numPeople) {
 		person_i.Id = minIdNum + i;
 
 		person_i.Hours = randomUniqueNums(numTimes, timeMin, timeMax);
-		person_i.hoursUsed.assign(numTimes, false); // initialize all availabilities to unfilled
-
 		if (professor) person_i.Desired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
 		else person_i.Desired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
 

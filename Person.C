@@ -31,6 +31,12 @@ void Person::RemoveUnreciprocatedDesires(vector<Person>& B, int numProfs) {
   }
 }
 
+bool Person::HourUsed(int hour) {
+  for(pair<int, int> meeting : MeetPersonAndTime) {
+    if(meeting.second == hour) return true;
+  }
+  return false;
+} 
 
 // Use this for debugging to print out a prof or student.
 ostream& operator<<(ostream& os, const Person& x)
@@ -39,10 +45,6 @@ ostream& operator<<(ostream& os, const Person& x)
   os << "#" << x.Id << ": " << endl;
   os << "  Hours: ";
   for (int i = 0; i < x.Hours.size(); i++) os << x.Hours[i] << " ";
-  os << endl;
-
-  os << "  Used Hours: ";
-  for (int i = 0; i < x.hoursUsed.size(); i++) os << x.hoursUsed[i] << " ";
   os << endl;
 
   os << "  Desired: ";

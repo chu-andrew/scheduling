@@ -12,7 +12,7 @@ int main() {
   srand(time(0));
 
   Generator gen (
-    4, 5, // numProfs, numStudents
+    5, 5, // numProfs, numStudents
     0.5, 4, // availabilityProportion, numDesires
     0, 10 // timeMin, timeMax
   );
@@ -21,10 +21,10 @@ int main() {
   G.ReadInData(gen); // Fill up the Professors and Students vectors.
   // cout << "Initial population" << G;
   G.Prune();
-  G.FillComparisonOrder();
+  G.CreateEdges();
   // cout << "Pruned desires" << G;
-  G.MakeScheduleGreedilyRandomly();
+  G.MakeScheduleGreedily();
   cout << "Graph after greedily filled:" << G;
   G.HillClimb();
-  // cout << "Graph after hill climb:" << G;
+  cout << "Graph after hill climb:" << G;
 }
