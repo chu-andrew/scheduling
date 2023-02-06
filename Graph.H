@@ -15,7 +15,6 @@ public:
   void Prune(); // Delete people in Desired who do not mutually desire you.
 
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
-  int CrossCheckSchedules(Person& a, Person& b);
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
 
   double Score();

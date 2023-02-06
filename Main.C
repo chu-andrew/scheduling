@@ -24,7 +24,7 @@ int main() {
   G.CreateEdges();
   // cout << "Pruned desires" << G;
   G.MakeScheduleGreedily();
-  cout << "Graph after greedily filled:" << G;
+  // cout << "Graph after greedily filled:" << G;
   G.HillClimb();
-  cout << "Graph after hill climb:" << G;
+  // cout << "Graph after hill climb:" << G;
 }

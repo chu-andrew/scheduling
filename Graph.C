@@ -19,13 +19,11 @@ void Graph::ReadInData(Generator gen) {
 void Graph::Prune() {
 // Remove non-mutual meeting desires
   for (Person& professor : Professors) {
-    professor.RemoveUnreciprocatedDesires(Students, Professors.size());
+    professor.RemoveInvalidDesires(Students, Professors.size());
   }
   for (Person& student : Students) {
-    student.RemoveUnreciprocatedDesires(Professors);
+    student.RemoveInvalidDesires(Professors);
   }
-  // TODO create two different Desire vectors - one with all initial desires, one with actual possible desires
-  // exclude meetings that are not possible b/c no availability overlap 
 }
 
 void Graph::CreateEdges() {
@@ -37,18 +35,6 @@ void Graph::CreateEdges() {
   Uncolored = Edges;
 }
 
-int Graph::CrossCheckSchedules(Person& a, Person& b) {
-// Compare two people's availabilities and return when they are both available
-  for (int aTime : a.Hours) {
-    if (a.HourUsed(aTime)) continue;
-    for (int bTime : b.Hours) {
-      if (b.HourUsed(bTime)) continue;
-      else if (aTime == bTime) return aTime;
-    }
-  }
-  return -1;
-}
-
 void Graph::MakeScheduleGreedily() {
   shuffle(begin(Uncolored), end(Uncolored), RNG);
 
@@ -57,7 +43,7 @@ void Graph::MakeScheduleGreedily() {
     Person& prof = Professors[compare.first];
     Person& student = Students[compare.second - Professors.size()];
 
-    int commonTime = CrossCheckSchedules(prof, student);
+    int commonTime = prof.CrossCheckSchedule(student);
 
     if (commonTime >= 0) {
       prof.MeetPersonAndTime.push_back(pair(student.Id, commonTime));
@@ -105,7 +91,7 @@ bool Graph::AttemptClimb(double currentScore) {
   MakeScheduleGreedily();
   double attemptScore = Score();
 
-  if (attemptScore > currentScore) cout << "delta: " << attemptScore - currentScore <<  endl;
+  if (attemptScore > currentScore) cout << "delta(score): +" << attemptScore - currentScore <<  endl;
   return attemptScore > currentScore;
 }
 
@@ -116,7 +102,7 @@ void Graph::HillClimb() {
   vector<pair<int, int>> colorCopy = Colored;
   vector<pair<int, int>> uncolorCopy = Uncolored;
 
-  cout << Score() << endl;
+  cout << "Score before hill climb: " << Score() << endl;
 
   for (int i = 0; i < 100000; i++) {
     double currentScore = Score();
@@ -137,7 +123,14 @@ void Graph::HillClimb() {
       Uncolored = uncolorCopy;
     }
   }
-  cout << Score() << endl;
+  
+  /*
+  cout << "Uncolored edges:" << endl;
+  for(pair<int, int> edge : Uncolored) {
+    cout << edge.first << " " << edge.second << endl;
+  }
+  */
+  cout << "Score after hill climb: " << Score() << endl;
 }
 
 // Use this for debugging to print out all profs and students in the graph.

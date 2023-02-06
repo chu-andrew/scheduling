@@ -38,8 +38,9 @@ vector<Person> Generator::generatePeople(bool professor, int numPeople) {
 		person_i.Id = minIdNum + i;
 
 		person_i.Hours = randomUniqueNums(numTimes, timeMin, timeMax);
-		if (professor) person_i.Desired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
-		else person_i.Desired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
+		if (professor) person_i.InitDesired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
+		else person_i.InitDesired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
+		person_i.Desired = person_i.InitDesired; // make a record of initial desires because desires will be pruned
 
 		people.push_back(person_i);
 	}
