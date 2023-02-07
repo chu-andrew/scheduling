@@ -29,15 +29,17 @@ void Graph::Prune() {
 void Graph::CreateEdges() {
   for (Person& prof : Professors) {
     for (int studentId : prof.Desired) {
-      Edges.push_back(pair(prof.Id, studentId));
+      Uncolored.push_back(pair(prof.Id, studentId));
     }
   }
-  Uncolored = Edges;
+}
+
+void Graph::ShuffleUncolored(default_random_engine& rng) {
+    shuffle(begin(Uncolored), end(Uncolored), rng);
 }
 
 void Graph::MakeScheduleGreedily() {
-  shuffle(begin(Uncolored), end(Uncolored), RNG);
-
+  reverse(begin(Uncolored), end(Uncolored));
   for (int i = Uncolored.size() - 1; i >= 0; i--) {
     pair<int, int> compare = Uncolored[i];
     Person& prof = Professors[compare.first];
@@ -55,24 +57,15 @@ void Graph::MakeScheduleGreedily() {
   }
 }
 
-double Graph::Score() {
-// Score the graph: what proportion of desires have been fulfilled?
-  int fulfilled = 0;
-  int desired = 0;
-
-  for (Person& student : Students) {
-    fulfilled += student.MeetPersonAndTime.size();
-    desired += student.Desired.size();
-  }
-  return fulfilled / (double) desired;
-}
-
-bool Graph::AttemptClimb(double currentScore) {
+bool Graph::AttemptClimb(default_random_engine& rng) {
 // Attempt a hill climb by removing one edge, greedy filling with the uncolored edges, and checking if the score has improved
+
+  double currentScore = Score();
   // choose an edge to uncolor
-  int randEdge = rand() % Colored.size();
-  Person& prof = Professors[Colored[randEdge].first];
-  Person& student = Students[Colored[randEdge].second - Professors.size()];
+  int randInt = rand() % Colored.size();
+  pair<int, int> randEdge = Colored[randInt];
+  Person& prof = Professors[randEdge.first];
+  Person& student = Students[randEdge.second - Professors.size()];
 
   // update Professor/Student objects and colored vector with uncolored edge
   for (int i = prof.MeetPersonAndTime.size() - 1; i >= 0 ; i--) {
@@ -85,84 +78,28 @@ bool Graph::AttemptClimb(double currentScore) {
       student.MeetPersonAndTime.erase(student.MeetPersonAndTime.begin() + i);
     }
   }
-  Colored.erase(Colored.begin() + randEdge);
+  Colored.erase(Colored.begin() + randInt);
 
-  // attempt greedy fill on remaining uncolored and score
+  // attempt greedy fill with remaining uncolored and score
+  ShuffleUncolored(rng);
+  Uncolored.push_back(randEdge);
   MakeScheduleGreedily();
   double attemptScore = Score();
-
-  // if (attemptScore > currentScore) cout << "delta: +" << attemptScore - currentScore <<  endl;
+  
+  // if (attemptScore > currentScore) cout << "climb delta: +" << attemptScore - currentScore <<  endl;
   return attemptScore > currentScore;
 }
 
-double Graph::HillClimb() {
-// Try to increase the number of pairs in MeetPersonAndTime
-  vector<Person> profCopy = Professors;
-  vector<Person> studCopy = Students;
-  vector<pair<int, int>> colorCopy = Colored;
-  vector<pair<int, int>> uncolorCopy = Uncolored;
-  Graph H;
+double Graph::Score() {
+// Score the graph: what proportion of desires have been fulfilled?
+  int fulfilled = 0;
+  int desired = 0;
 
-  for (int i = 0; i < Professors.size() * Students.size() * 1000; i++) {
-    double currentScore = Score();
-    if (currentScore == 1) break;
-
-    bool climbed = AttemptClimb(currentScore);
-    if (climbed) {
-      // update copies
-      profCopy = Professors;
-      studCopy = Students;
-      colorCopy = Colored;
-      uncolorCopy = Uncolored;
-    } else {
-      // revert
-      Professors = profCopy;
-      Students = studCopy;
-      Colored = colorCopy;
-      Uncolored = uncolorCopy;
-    }
+  for (Person& student : Students) {
+    fulfilled += student.MeetPersonAndTime.size();
+    desired += student.Desired.size();
   }
-  return Score();
-}
-
-void Graph::RandomRestart() {
-  vector<Person> bestProf;
-  vector<Person> bestStud;
-  double bestScore = -1;
-
-  cout << "Score before hill climb: " << Score() << endl;
-
-  for (int i = 0; i < 1000; i++) {
-    // greedy fill, then attempt climb
-    MakeScheduleGreedily(); // initial fill
-    double climbScore = HillClimb(); // attempt hill climbs
-
-    // evaluate
-    if (climbScore > bestScore) {
-      cout << "new best: " << climbScore << endl;
-      bestProf = Professors;
-      bestStud = Students;
-      bestScore = climbScore;
-      if (climbScore == 1) break;
-    } else {
-      Colored.clear();
-      Uncolored.clear();
-      Uncolored = Edges;
-
-      for (Person& prof : Professors) {
-        prof.MeetPersonAndTime.clear();
-      }
-
-      for (Person& stud : Students) {
-        stud.MeetPersonAndTime.clear();
-      }
-    }
-  }
-
-  Professors = bestProf;
-  Students = bestStud;
-  cout << "Score after hill climb: " << Score() << endl;
-
+  return fulfilled / (double) desired;
 }
 
 // Use this for debugging to print out all profs and students in the graph.

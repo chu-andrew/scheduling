@@ -12,27 +12,23 @@ class Graph {
 
 public:
   void ReadInData(Generator gen); // Load professor/student vectors
-  void Prune(); // Delete people in Desired who do not mutually desire you.
-
+  void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
+  
+  void ShuffleUncolored(default_random_engine& rng);
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
 
+  bool AttemptClimb(default_random_engine& rng);
   double Score();
-  bool AttemptClimb(double currentScore);
-  double HillClimb(); // Try to increase the number of pairs in MeetPersonAndTime
-  void RandomRestart();
 
   vector<Person> Professors;
   vector<Person> Students;
 
-  vector<pair<int, int>> Edges; // professor Id, student Id mutually desired meetings
   vector<pair<int, int>> Colored; // mutually desired meetings are currently fulfilled
   vector<pair<int, int>> Uncolored; // mutually desired meetings that are not currently fulfilled
 
-
 private:
-  random_device RD = random_device {}; 
-  default_random_engine RNG = default_random_engine {RD()};
+
 };
 
 ostream& operator<<(ostream& os, const Graph&);
