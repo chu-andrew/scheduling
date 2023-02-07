@@ -17,7 +17,7 @@ void Graph::ReadInData(Generator gen) {
 }
 
 void Graph::Prune() {
-// Remove non-mutual meeting desires
+// Remove non-mutual and impossible-to-fulfill meeting desires
   for (Person& professor : Professors) {
     professor.RemoveInvalidDesires(Students, Professors.size());
   }
@@ -87,24 +87,23 @@ bool Graph::AttemptClimb(double currentScore) {
   }
   Colored.erase(Colored.begin() + randEdge);
 
-  // attempt greedy fill and score
+  // attempt greedy fill on remaining uncolored and score
   MakeScheduleGreedily();
   double attemptScore = Score();
 
-  if (attemptScore > currentScore) cout << "delta(score): +" << attemptScore - currentScore <<  endl;
+  // if (attemptScore > currentScore) cout << "delta: +" << attemptScore - currentScore <<  endl;
   return attemptScore > currentScore;
 }
 
-void Graph::HillClimb() {
+double Graph::HillClimb() {
 // Try to increase the number of pairs in MeetPersonAndTime
   vector<Person> profCopy = Professors;
   vector<Person> studCopy = Students;
   vector<pair<int, int>> colorCopy = Colored;
   vector<pair<int, int>> uncolorCopy = Uncolored;
+  Graph H;
 
-  cout << "Score before hill climb: " << Score() << endl;
-
-  for (int i = 0; i < 100000; i++) {
+  for (int i = 0; i < Professors.size() * Students.size() * 1000; i++) {
     double currentScore = Score();
     if (currentScore == 1) break;
 
@@ -123,14 +122,47 @@ void Graph::HillClimb() {
       Uncolored = uncolorCopy;
     }
   }
-  
-  /*
-  cout << "Uncolored edges:" << endl;
-  for(pair<int, int> edge : Uncolored) {
-    cout << edge.first << " " << edge.second << endl;
+  return Score();
+}
+
+void Graph::RandomRestart() {
+  vector<Person> bestProf;
+  vector<Person> bestStud;
+  double bestScore = -1;
+
+  cout << "Score before hill climb: " << Score() << endl;
+
+  for (int i = 0; i < 1000; i++) {
+    // greedy fill, then attempt climb
+    MakeScheduleGreedily(); // initial fill
+    double climbScore = HillClimb(); // attempt hill climbs
+
+    // evaluate
+    if (climbScore > bestScore) {
+      cout << "new best: " << climbScore << endl;
+      bestProf = Professors;
+      bestStud = Students;
+      bestScore = climbScore;
+      if (climbScore == 1) break;
+    } else {
+      Colored.clear();
+      Uncolored.clear();
+      Uncolored = Edges;
+
+      for (Person& prof : Professors) {
+        prof.MeetPersonAndTime.clear();
+      }
+
+      for (Person& stud : Students) {
+        stud.MeetPersonAndTime.clear();
+      }
+    }
   }
-  */
+
+  Professors = bestProf;
+  Students = bestStud;
   cout << "Score after hill climb: " << Score() << endl;
+
 }
 
 // Use this for debugging to print out all profs and students in the graph.

@@ -23,8 +23,8 @@ int main() {
   G.Prune();
   G.CreateEdges();
   // cout << "Pruned desires" << G;
-  G.MakeScheduleGreedily();
+  // G.MakeScheduleGreedily();
   // cout << "Graph after greedily filled:" << G;
-  G.HillClimb();
-  // cout << "Graph after hill climb:" << G;
+  G.RandomRestart();
+  cout << "Graph after hill climb:" << G;
 }

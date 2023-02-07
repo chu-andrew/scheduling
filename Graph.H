@@ -19,7 +19,8 @@ public:
 
   double Score();
   bool AttemptClimb(double currentScore);
-  void HillClimb(); // Try to increase the number of pairs in MeetPersonAndTime
+  double HillClimb(); // Try to increase the number of pairs in MeetPersonAndTime
+  void RandomRestart();
 
   vector<Person> Professors;
   vector<Person> Students;
