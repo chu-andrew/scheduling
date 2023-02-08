@@ -35,7 +35,7 @@ void Graph::Prune() {
 void Graph::CreateEdges() {
   for (Person& prof : Professors) {
     for (int studentId : prof.Desired) {
-      Uncolored.push_back(pair(prof.Id, studentId));
+      Unconnected.push_back(pair(prof.Id, studentId));
     }
   }
 }
@@ -43,21 +43,21 @@ void Graph::CreateEdges() {
 // GREEDY FILL
 void Graph::InitialGreedyFill(default_random_engine& rng) {
 // Used for first greedy fill after random restart from base graph
-  shuffle(begin(Uncolored), end(Uncolored), rng);
+  shuffle(begin(Unconnected), end(Unconnected), rng);
   MakeScheduleGreedily();
 }
 
 void Graph::ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng) {
-// Used for iterative hill climbs' greedy fills on the remaining uncolored edges after removing one edge from Colored.
-  shuffle(begin(Uncolored), end(Uncolored), rng);
-  Uncolored.insert(Uncolored.begin(), removedEdge); // insert the removed colored edge at beginning because MakeScheduleGreedily() evaluates from last to first index
+// Used for iterative hill climbs' greedy fills on the remaining Unconnected edges after removing one edge from Connected.
+  shuffle(begin(Unconnected), end(Unconnected), rng);
+  Unconnected.insert(Unconnected.begin(), removedEdge); // insert the removed Connected edge at beginning because MakeScheduleGreedily() evaluates from last to first index
   MakeScheduleGreedily();
 }
 
 void Graph::MakeScheduleGreedily() {
-// Fill graph greedily with uncolored edges
-  for (int i = Uncolored.size() - 1; i >= 0; i--) {
-    pair<int, int> compare = Uncolored[i];
+// Fill graph greedily with Unconnected edges
+  for (int i = Unconnected.size() - 1; i >= 0; i--) {
+    pair<int, int> compare = Unconnected[i];
     Person& prof = Professors[compare.first];
     Person& student = Students[compare.second - Professors.size()];
 
@@ -67,40 +67,40 @@ void Graph::MakeScheduleGreedily() {
       prof.MeetPersonAndTime.push_back(pair(student.Id, commonTime));
       student.MeetPersonAndTime.push_back(pair(prof.Id, commonTime));
 
-      Uncolored.erase(Uncolored.begin() + i);
-      Colored.push_back(compare);
+      Unconnected.erase(Unconnected.begin() + i);
+      Connected.push_back(compare);
     }
   }
 }
 
 // HILL CLIMB
 double Graph::AttemptClimb(default_random_engine& rng) {
-// Attempt a hill climb by removing one edge, greedy filling with the uncolored edges, and checking if the score has improved
+// Attempt a hill climb by removing one edge, greedy filling with the Unconnected edges, and checking if the score has improved
 
   double currentScore = Score();
   if (currentScore == 1) return 1;
-  
+
   pair<int, int> removedEdge = RemoveRandomEdge();
 
-  // attempt greedy fill with remaining uncolored and score
+  // attempt greedy fill with remaining Unconnected and score
   ClimbGreedyFill(removedEdge, rng);
   double attemptScore = Score();
-  
+
   if (attemptScore > currentScore) return attemptScore;
   else return -1; // disregard any non-improvements
 }
 
 pair<int, int> Graph::RemoveRandomEdge() {
-// Remove a random colored edge in preparation for hill climb
+// Remove a random Connected edge in preparation for hill climb
 
-  // choose an edge to uncolor
-  int randInt = rand() % Colored.size();
-  pair<int, int> removedEdge = Colored[randInt];
+  // choose an edge to connect
+  int randInt = rand() % Connected.size();
+  pair<int, int> removedEdge = Connected[randInt];
 
   Person& prof = Professors[removedEdge.first];
   Person& student = Students[removedEdge.second - Professors.size()];
 
-  // update Professor/Student objects and colored vector with uncolored edge
+  // update Professor/Student objects and Connected vector with Unconnected edge
   for (int i = prof.MeetPersonAndTime.size() - 1; i >= 0 ; i--) {
     if (prof.MeetPersonAndTime[i].first == student.Id) {
       prof.MeetPersonAndTime.erase(prof.MeetPersonAndTime.begin() + i);
@@ -111,7 +111,7 @@ pair<int, int> Graph::RemoveRandomEdge() {
       student.MeetPersonAndTime.erase(student.MeetPersonAndTime.begin() + i);
     }
   }
-  Colored.erase(Colored.begin() + randInt);
+  Connected.erase(Connected.begin() + randInt);
 
   return removedEdge;
 }
@@ -154,7 +154,7 @@ ostream& operator<<(ostream& os, const Graph& x)
   os << endl;
 
   os << "Unfulfilled Meetings:" << endl;
-  for(pair<int, int> edge : x.Uncolored) {
+  for (pair<int, int> edge : x.Unconnected) {
     cout << " P" << edge.first << " S" << edge.second << endl;
   }
   os << endl;
