@@ -7,41 +7,38 @@
 using namespace std;
 
 
-Graph Climb(const Graph baseG, default_random_engine& rng) {
+Graph Climb(const Graph baseG, default_random_engine& rng, bool debug) {
   Graph bestG = baseG;
+  if (baseG.Uncolored.size() == 0) return baseG; // check if any meetings are possible at all
   double bestScore = -1;
 
-  int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
+  int populationMultiplier = baseG.Professors.size() * baseG.Students.size() / 2;
 
-  for (int i = 0; i < populationMultiplier * 10; i++) {
-    Graph randomRestartG = baseG;
-    randomRestartG.ShuffleUncolored(rng);
-    randomRestartG.MakeScheduleGreedily();
+  for (int i = 0; i < populationMultiplier; i++) {
+    if (debug) cout << "restart #" << i << "/" << populationMultiplier << endl;
+    Graph hillClimbG = baseG;
+    hillClimbG.InitialGreedyFill(rng);
+    if (hillClimbG.Colored.size() == 0) continue; // disregard complete failure scenarios of initial greedy fill
 
-    Graph hillClimbG = randomRestartG;
-
-    for (int j = 0 ; j < populationMultiplier * 10; j++) {
+    for (int j = 0 ; j < populationMultiplier; j++) {
       Graph attemptG = hillClimbG;
-      bool climbed = attemptG.AttemptClimb(rng);
+      double climbScore = attemptG.AttemptClimb(rng);
 
-      if (climbed) {
+      if (climbScore > 0) {
         hillClimbG = attemptG;
-        // cout << "restart: " << i << " climb: " << j << " " << hillClimbG.Score() << endl;
+        if (debug)  cout << " climb: #" << j << " score: \t" << climbScore << endl;
       }
-
-      double climbScore = hillClimbG.Score();
-      if (climbScore == 1) return hillClimbG;
+      if (climbScore == 1) {
+        if (debug)  cout << "100\% fulfilled [restart #" << i << "]: " << climbScore << endl;
+        return hillClimbG;
+      }
     }
 
-    randomRestartG = hillClimbG;
-
-    double score = randomRestartG.Score();
+    double score = hillClimbG.Score();
     if (score > bestScore) {
       bestScore = score;
-      bestG = randomRestartG;
-      cout << "new best score [restart #" << i << "]: " << score << endl;
-
-      if (score == 1) break;
+      bestG = hillClimbG;
+      if (debug) cout << "new best [restart #" << i << "]:\t*" << score << endl;
     }
   }
   return bestG;
@@ -50,23 +47,23 @@ Graph Climb(const Graph baseG, default_random_engine& rng) {
 int main() {
 
   srand(time(0));
-  random_device RD = random_device {};
-  default_random_engine RNG = default_random_engine {RD()};
+  random_device rd = random_device {};
+  default_random_engine RNG = default_random_engine {rd()};
+  // default_random_engine RNG = default_random_engine {};
 
   Generator gen (
-    5, 5, // numProfs, numStudents
-    0.5, 4, // availabilityProportion, numDesires
+    10, 10, // numProfs, numStudents
+    0.5, 6, // availabilityProportion, numDesires
     0, 10 // timeMin, timeMax
   );
 
   Graph G;
   G.ReadInData(gen); // Fill up the Professors and Students vectors.
-  // cout << "Initial population" << G;
+  cout << "\nInitial population" << G;
   G.Prune();
   G.CreateEdges();
-  // cout << "Base graph" << G;
+  cout << "\nBase graph" << G;
 
-  G = Climb(G, RNG);
-  cout << "Graph after hill climb:" << G;
-  cout << G.Score() << endl;
+  G = Climb(G, RNG, false);
+  cout << "\nGraph after hill climb:" << G;
 }

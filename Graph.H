@@ -15,11 +15,12 @@ public:
   void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
   
-  void ShuffleUncolored(default_random_engine& rng);
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
-
-  bool AttemptClimb(default_random_engine& rng);
-  double Score();
+  void InitialGreedyFill(default_random_engine& rng);
+  void ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng);
+  
+  double AttemptClimb(default_random_engine& rng);
+  double Score() const;
 
   vector<Person> Professors;
   vector<Person> Students;

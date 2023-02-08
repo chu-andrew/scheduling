@@ -34,12 +34,7 @@ void Graph::CreateEdges() {
   }
 }
 
-void Graph::ShuffleUncolored(default_random_engine& rng) {
-    shuffle(begin(Uncolored), end(Uncolored), rng);
-}
-
 void Graph::MakeScheduleGreedily() {
-  reverse(begin(Uncolored), end(Uncolored));
   for (int i = Uncolored.size() - 1; i >= 0; i--) {
     pair<int, int> compare = Uncolored[i];
     Person& prof = Professors[compare.first];
@@ -57,15 +52,27 @@ void Graph::MakeScheduleGreedily() {
   }
 }
 
-bool Graph::AttemptClimb(default_random_engine& rng) {
+void Graph::InitialGreedyFill(default_random_engine& rng) {
+  shuffle(begin(Uncolored), end(Uncolored), rng);
+  MakeScheduleGreedily();
+}
+
+void Graph::ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng) {
+  shuffle(begin(Uncolored), end(Uncolored), rng);
+  Uncolored.insert(Uncolored.begin(), removedEdge); // insert the removed colored edge at beginning because MakeScheduleGreedily() evaluates from last to first index
+  MakeScheduleGreedily();
+}
+
+double Graph::AttemptClimb(default_random_engine& rng) {
 // Attempt a hill climb by removing one edge, greedy filling with the uncolored edges, and checking if the score has improved
 
   double currentScore = Score();
+
   // choose an edge to uncolor
   int randInt = rand() % Colored.size();
-  pair<int, int> randEdge = Colored[randInt];
-  Person& prof = Professors[randEdge.first];
-  Person& student = Students[randEdge.second - Professors.size()];
+  pair<int, int> removedEdge = Colored[randInt];
+  Person& prof = Professors[removedEdge.first];
+  Person& student = Students[removedEdge.second - Professors.size()];
 
   // update Professor/Student objects and colored vector with uncolored edge
   for (int i = prof.MeetPersonAndTime.size() - 1; i >= 0 ; i--) {
@@ -81,24 +88,23 @@ bool Graph::AttemptClimb(default_random_engine& rng) {
   Colored.erase(Colored.begin() + randInt);
 
   // attempt greedy fill with remaining uncolored and score
-  ShuffleUncolored(rng);
-  Uncolored.push_back(randEdge);
-  MakeScheduleGreedily();
+  ClimbGreedyFill(removedEdge, rng);
   double attemptScore = Score();
   
-  // if (attemptScore > currentScore) cout << "climb delta: +" << attemptScore - currentScore <<  endl;
-  return attemptScore > currentScore;
+  if (attemptScore > currentScore) return attemptScore;
+  else return -1;
 }
 
-double Graph::Score() {
+double Graph::Score() const {
 // Score the graph: what proportion of desires have been fulfilled?
   int fulfilled = 0;
   int desired = 0;
 
-  for (Person& student : Students) {
+  for (Person student : Students) {
     fulfilled += student.MeetPersonAndTime.size();
     desired += student.Desired.size();
   }
+  // cout << fulfilled << " " << desired << endl;
   return fulfilled / (double) desired;
 }
 
@@ -125,6 +131,14 @@ ostream& operator<<(ostream& os, const Graph& x)
     }
   }
   os << endl;
+
+  os << "Unfulfilled Meetings:" << endl;
+  for(pair<int, int> edge : x.Uncolored) {
+    cout << " P" << edge.first << " S" << edge.second << endl;
+  }
+  os << endl;
+
+  os << "Score: " << x.Score() << endl;
 
   return os;
 }
