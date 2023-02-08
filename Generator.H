@@ -13,9 +13,9 @@ class Generator {
 public:
   Generator (
     int numProfs, int numStudents,
-    double availabilityProportion, // proportion of everybody's time range in which a person is available
+    int numTimes, // number of available meeting times
     int numDesires, // number of desired meetings
-    int timeMin, int timeMax // earliest/latest available times among all people
+    int timeMin, int timeMax // earliest/latest available times among all people (inclusive bounds)
   );
 
   vector<Person> professors, students;

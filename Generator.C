@@ -10,13 +10,15 @@
 
 using namespace std;
 
-Generator::Generator(int numProfs, int numStudents, double availabilityProportion, int numDesires, int timeMin, int timeMax) {
+Generator::Generator(int numProfs, int numStudents, int numTimes, int numDesires, int timeMin, int timeMax) {
 	this->timeMin = timeMin;
 	this->timeMax = timeMax;
 
-	numTimes = (timeMax - timeMin) * availabilityProportion;
+	this->numTimes = numTimes;
 	this->numDesires = numDesires;
+
 	assert(numDesires <= numProfs && numDesires <= numStudents);
+	assert(numTimes <= timeMax - timeMin + 1);
 
 	IdRanges[0] = 0;
 	IdRanges[1] = numProfs;

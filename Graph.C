@@ -10,10 +10,16 @@
 using namespace std;
 
 
+// INITIALIZATION
 void Graph::ReadInData(Generator gen) {
 // Read in all the info about profs and students and create the vectors containing them.
   Professors = gen.professors;
   Students = gen.students;
+}
+
+void Graph::Initialize() {
+  Prune();
+  CreateEdges();
 }
 
 void Graph::Prune() {
@@ -34,7 +40,22 @@ void Graph::CreateEdges() {
   }
 }
 
+// GREEDY FILL
+void Graph::InitialGreedyFill(default_random_engine& rng) {
+// Used for first greedy fill after random restart from base graph
+  shuffle(begin(Uncolored), end(Uncolored), rng);
+  MakeScheduleGreedily();
+}
+
+void Graph::ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng) {
+// Used for iterative hill climbs' greedy fills on the remaining uncolored edges after removing one edge from Colored.
+  shuffle(begin(Uncolored), end(Uncolored), rng);
+  Uncolored.insert(Uncolored.begin(), removedEdge); // insert the removed colored edge at beginning because MakeScheduleGreedily() evaluates from last to first index
+  MakeScheduleGreedily();
+}
+
 void Graph::MakeScheduleGreedily() {
+// Fill graph greedily with uncolored edges
   for (int i = Uncolored.size() - 1; i >= 0; i--) {
     pair<int, int> compare = Uncolored[i];
     Person& prof = Professors[compare.first];
@@ -52,25 +73,30 @@ void Graph::MakeScheduleGreedily() {
   }
 }
 
-void Graph::InitialGreedyFill(default_random_engine& rng) {
-  shuffle(begin(Uncolored), end(Uncolored), rng);
-  MakeScheduleGreedily();
-}
-
-void Graph::ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng) {
-  shuffle(begin(Uncolored), end(Uncolored), rng);
-  Uncolored.insert(Uncolored.begin(), removedEdge); // insert the removed colored edge at beginning because MakeScheduleGreedily() evaluates from last to first index
-  MakeScheduleGreedily();
-}
-
+// HILL CLIMB
 double Graph::AttemptClimb(default_random_engine& rng) {
 // Attempt a hill climb by removing one edge, greedy filling with the uncolored edges, and checking if the score has improved
 
   double currentScore = Score();
+  if (currentScore == 1) return 1;
+  
+  pair<int, int> removedEdge = RemoveRandomEdge();
+
+  // attempt greedy fill with remaining uncolored and score
+  ClimbGreedyFill(removedEdge, rng);
+  double attemptScore = Score();
+  
+  if (attemptScore > currentScore) return attemptScore;
+  else return -1; // disregard any non-improvements
+}
+
+pair<int, int> Graph::RemoveRandomEdge() {
+// Remove a random colored edge in preparation for hill climb
 
   // choose an edge to uncolor
   int randInt = rand() % Colored.size();
   pair<int, int> removedEdge = Colored[randInt];
+
   Person& prof = Professors[removedEdge.first];
   Person& student = Students[removedEdge.second - Professors.size()];
 
@@ -87,12 +113,7 @@ double Graph::AttemptClimb(default_random_engine& rng) {
   }
   Colored.erase(Colored.begin() + randInt);
 
-  // attempt greedy fill with remaining uncolored and score
-  ClimbGreedyFill(removedEdge, rng);
-  double attemptScore = Score();
-  
-  if (attemptScore > currentScore) return attemptScore;
-  else return -1;
+  return removedEdge;
 }
 
 double Graph::Score() const {
