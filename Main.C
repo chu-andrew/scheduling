@@ -7,48 +7,55 @@
 using namespace std;
 
 
-Graph Climb(const Graph baseG, default_random_engine& rng, bool debug) {
-  Graph bestG = baseG;
-  double bestScore = -1;
-  if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
+void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool debug) {
+// hill climb loop
+  double currentScore = 0;
+  for (int j = 0 ; j < populationMultiplier && currentScore < 1; j++) {
+    // create a new attempt object so that changes can be made without affecting the hillClimbG object
+    Graph attemptG = hillClimbG; // return attempt graph to the best graph out of this restart (discard non-score-increasing changes)
+    double climbScore = attemptG.AttemptClimb(currentScore, rng);
 
+    if (climbScore > currentScore) { // evaluate climb attempt
+      if (debug) cout << i << "\t\t" << j << "\t" << climbScore << "\t" << climbScore - currentScore << endl;
 
-  // random restart loop
-  if (debug) cout << "restart#\tclimb#\tscore" << endl;
-  int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
+      // update graphs that have climbed
+      currentScore = climbScore;
+      hillClimbG = attemptG;
 
-  for (int i = 0; i < populationMultiplier / 4; i++) {
-    Graph hillClimbG = baseG;
-    hillClimbG.InitialGreedyFill(rng);
-    if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure scenarios of initial greedy fill
+      // update graphs that have climbed and are better than graphs from all restarts
+      if (climbScore > bestScore) {
+        cout << "new best [restart #" << i << "]:\t" << climbScore << "*\t" << "delta(best): " << climbScore - bestScore << endl;
 
-    // hill climb loop
-    for (int j = 0 ; j < populationMultiplier; j++) {
-      // create a new attempt object so that changes can be made without affecting the hillClimbG object
-      Graph attemptG = hillClimbG;
-      double climbScore = attemptG.AttemptClimb(rng);
+        bestScore = currentScore;
+        bestG = hillClimbG;
 
-      if (climbScore > 0) { // evaluate climb attempt
-        if (debug) cout << i << "\t\t" << j << "\t" << climbScore << endl;
-
-        hillClimbG = attemptG;
-        if (climbScore > bestScore) j = 0; // reward hill climbs that have increased the score with more attempts
-        if (climbScore == 1) break;
+        // reward hill climbs that have increased the score with more attempts
+        j = 0; // causes of decreases in hill climb# in output
       }
     }
+  }
+}
 
-    double score = hillClimbG.Score();
-    if (score > bestScore) {
-      cout << "new best [restart #" << i << "]:\t" << score << "*" << endl;
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool debug) {
+  Graph bestG = baseG;
+  double bestScore = 0;
+  if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
 
-      bestScore = score;
-      bestG = hillClimbG;
-      if (bestScore == 1) break;
-    }
+  if (debug) cout << "restart#\tclimb#\tscore\tdelta" << endl;
+  int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
+
+  // random restart loop
+  for (int i = 0; i < populationMultiplier / 4 && bestScore < 1; i++) {
+    Graph hillClimbG = baseG;
+    hillClimbG.InitialGreedyFill(rng);
+    if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure of initial greedy fill
+
+    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, debug);
   }
   cout << "BEST: " << bestScore << endl;
   return bestG;
 }
+
 
 int main() {
   srand(time(0));
@@ -57,8 +64,8 @@ int main() {
   // default_random_engine RNG = default_random_engine {}; // unseeded
 
   Generator gen (
-    10, 10, // numProfs, numStudents
-    5, 5, // numTimes, numDesires
+    20, 20, // numProfs, numStudents
+    5, 10, // numTimes, numDesires
     0, 10 // timeMin, timeMax
   );
 
@@ -68,6 +75,6 @@ int main() {
   G.Initialize();
   // cout << "\nBase graph" << G;
 
-  G = Climb(G, RNG, false); // debug=true displays hill climb progress for each restart
+  G = RandomRestart(G, RNG, true); // debug=true displays hill climb progress for each restart
   cout << "\nGraph after hill climb:" << G;
 }

@@ -17,7 +17,7 @@ public:
   void InitialGreedyFill(default_random_engine& rng); // First greedy fill after random restart from base graph
   void ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng); // Iterative hill climbs' greedy fill on remaining Unconnected edges after removing one edge.
 
-  double AttemptClimb(default_random_engine& rng);
+  double AttemptClimb(double currentScore, default_random_engine& rng);
   double Score() const;
 
   vector<Person> Professors;

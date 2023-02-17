@@ -74,20 +74,14 @@ void Graph::MakeScheduleGreedily() {
 }
 
 // HILL CLIMB
-double Graph::AttemptClimb(default_random_engine& rng) {
+double Graph::AttemptClimb(double currentScore, default_random_engine& rng) {
 // Attempt a hill climb by removing one edge, greedy filling with the Unconnected edges, and checking if the score has improved
-
-  double currentScore = Score();
-  if (currentScore == 1) return 1;
-
   pair<int, int> removedEdge = RemoveRandomEdge();
 
   // attempt greedy fill with remaining Unconnected and score
   ClimbGreedyFill(removedEdge, rng);
-  double attemptScore = Score();
 
-  if (attemptScore > currentScore) return attemptScore;
-  else return -1; // disregard any non-improvements
+  return Score();
 }
 
 pair<int, int> Graph::RemoveRandomEdge() {
