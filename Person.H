@@ -29,5 +29,6 @@ private:
 };
 
 ostream& operator<<(ostream& os, const Person&);
+ofstream& operator<<(ofstream& fout, const Person& x);
 
 #endif

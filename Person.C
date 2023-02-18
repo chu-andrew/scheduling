@@ -1,6 +1,7 @@
 #include "Person.H"
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 
 using namespace std;
@@ -70,3 +71,20 @@ ostream& operator<<(ostream& os, const Person& x)
 
   return os;
 }
+
+// for writing to file
+ofstream& operator<<(ofstream& fout, const Person& x) {
+  // to be implemented
+
+  fout << x.Id << "\n";
+  fout << "WANT: ";
+  for (int i = 0; i < x.Hours.size(); i++) fout << x.Hours[i] << " ";
+  fout << "\n";
+
+  fout << "TIME: ";
+  for (int i = 0; i < x.Desired.size(); i++) fout << x.Desired[i] << " ";
+  fout << endl;
+
+  return fout;
+}
+

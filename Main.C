@@ -1,5 +1,6 @@
 #include "Graph.H"
 #include "Generator.H"
+#include "FileIO.H"
 
 #include <iostream>
 #include <time.h>
@@ -58,18 +59,26 @@ Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool debug) {
 
 
 int main() {
-  srand(time(0));
-  random_device rd = random_device {};
-  default_random_engine RNG = default_random_engine {rd()};
-  // default_random_engine RNG = default_random_engine {}; // unseeded
+  const bool SEED = false;
+
+  default_random_engine RNG;
+  if (SEED) {
+    srand(time(0));
+    random_device rd = random_device {};
+    RNG = default_random_engine {rd()};
+  } else {
+    RNG = default_random_engine {};
+  }
 
   Generator gen (
-    20, 20, // numProfs, numStudents
-    5, 10, // numTimes, numDesires
+    10, 10, // numProfs, numStudents
+    5, 5, // numTimes, numDesires
     0, 10 // timeMin, timeMax
   );
 
   Graph G;
+  FileIO F;
+
   G.ReadInData(gen); // Fill up the Professors and Students vectors.
   // cout << "\nInitial population" << G;
   G.Initialize();
@@ -77,4 +86,5 @@ int main() {
 
   G = RandomRestart(G, RNG, true); // debug=true displays hill climb progress for each restart
   cout << "\nGraph after hill climb:" << G;
+  F.WriteSchedule(G);
 }

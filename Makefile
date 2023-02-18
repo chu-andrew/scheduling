@@ -2,6 +2,7 @@ C++        = g++
 CPPFLAGS = -O3
 
 OBJECTS =     Generator.o \
+              FileIO.o \
               Person.o \
               Graph.o \
 	      Main.o 
@@ -16,6 +17,7 @@ $(OBJECTS) :
 
 
 Generator.o       : Generator.C Generator.H
+FileIO.o       	  : FileIO.C FileIO.H
 Person.o          : Person.C Person.H
 Graph.o           : Graph.C Graph.H
 Main.o            : Main.C 

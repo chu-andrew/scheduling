@@ -23,8 +23,8 @@ public:
   vector<Person> Professors;
   vector<Person> Students;
 
-  vector<pair<int, int>> Connected; // mutually desired meetings are currently fulfilled
-  vector<pair<int, int>> Unconnected; // mutually desired meetings that are not currently fulfilled
+  vector<pair<int, int>> Connected; // mutually desired meetings are currently fulfilled (profId, studId)
+  vector<pair<int, int>> Unconnected; // mutually desired meetings that are not currently fulfilled (profId, studId)
 
 private:
   void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
