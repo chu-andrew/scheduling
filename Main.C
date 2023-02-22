@@ -72,8 +72,8 @@ int main() {
 
   Generator gen (
     10, 10, // numProfs, numStudents
-    5, 5, // numTimes, numDesires
-    0, 10 // timeMin, timeMax
+    5, 6, // numTimes, numDesires
+    1, 10 // timeMin, timeMax
   );
 
   Graph G;
@@ -86,5 +86,7 @@ int main() {
 
   G = RandomRestart(G, RNG, true); // debug=true displays hill climb progress for each restart
   cout << "\nGraph after hill climb:" << G;
-  F.WriteSchedule(G);
+
+  F.WriteAvailabilities(G, "\t");
+  F.WriteSchedule(G, "\t");
 }
