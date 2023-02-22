@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <assert.h>
+#include <cassert>
 
 
 using namespace std;
@@ -69,4 +69,13 @@ vector<int> Generator::randomUniqueNums(int n, int min, int max) {
 
 	sort(nums.begin(), nums.end());
 	return nums;
+}
+
+void WritePopulation(const Generator gen) {
+	ofstream population;
+	population.open("population.csv");
+
+	// write generated population to file
+
+	population.close();
 }

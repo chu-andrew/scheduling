@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <random>
+#include <fstream>
 
 using namespace std;
 
@@ -20,6 +21,9 @@ public:
   double AttemptClimb(double currentScore, default_random_engine& rng);
   double Score() const;
 
+  // write availabilities and schedule (meetings/desires) to file
+  void WriteGraphState(string fname, string delimiter) const;
+
   vector<Person> Professors;
   vector<Person> Students;
 
@@ -31,7 +35,21 @@ private:
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
   pair<int, int> RemoveRandomEdge(); // Remove a random connected edge in preparation for hill climb
+
+
+  void WriteAvailabilities(ofstream& graphOut, string delimiter) const;
+  void WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& graphOut,
+                                   pair<int, int> timeRange, string affiliation, string delimiter) const;
+  vector<vector<bool>> GenerateAvailabilityVector(const vector<Person>& group, pair<int, int> timeRange) const;
+
+  void WriteSchedule(ofstream& graphOut, string delimiter) const;
+  vector<vector<int>> GenerateScheduleVector() const;
 };
+
+// core functions for running the random restart + hill climb algorithms on Graph
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool debug);
+void Climb(const int i, Graph& hillClimbG, Graph& bestG,
+           double& bestScore, int populationMultiplier, default_random_engine& rng, bool debug);
 
 ostream& operator<<(ostream& os, const Graph&);
 

@@ -17,6 +17,8 @@ public:
     int numDesires, // number of desired meetings
     int timeMin, int timeMax // earliest/latest available times among all people (inclusive bounds)
   );
+  
+  void WritePopulation();
 
   vector<Person> professors, students;
 
