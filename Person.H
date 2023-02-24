@@ -15,7 +15,7 @@ public:
   int CrossCheckSchedule(Person& b);
   bool HourUsed(int hour);
 
-  bool professor;
+  bool isProfessor;
   int Id;                  // Identification number
   string Name;             // e.g. "John Doe"
 

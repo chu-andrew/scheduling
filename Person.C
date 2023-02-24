@@ -17,7 +17,7 @@ void Person::RemoveInvalidDesires(vector<Person>& B, int numProfs) {
     int desiredBId = Desired[i];
 
     Person desiredB; // find other Person, taking advantage of Id allocation ranges
-    if (professor) desiredB = B[desiredBId - numProfs];
+    if (isProfessor) desiredB = B[desiredBId - numProfs];
     else desiredB = B[desiredBId];
 
     // check for mutual desires
@@ -59,7 +59,7 @@ bool Person::HourUsed(int hour) {
 // Use this for debugging to print out a prof or student.
 ostream& operator<<(ostream& os, const Person& x)
 {
-  os << (x.professor ? "Professor " : "Student ");
+  os << (x.isProfessor ? "Professor " : "Student ");
   os << "#" << x.Id << ": " << endl;
   os << "  Hours: ";
   for (int i = 0; i < x.Hours.size(); i++) os << x.Hours[i] << " ";
@@ -71,20 +71,3 @@ ostream& operator<<(ostream& os, const Person& x)
 
   return os;
 }
-
-// for writing to file
-ofstream& operator<<(ofstream& fout, const Person& x) {
-  // to be implemented
-
-  fout << x.Id << "\n";
-  fout << "WANT: ";
-  for (int i = 0; i < x.Hours.size(); i++) fout << x.Hours[i] << " ";
-  fout << "\n";
-
-  fout << "TIME: ";
-  for (int i = 0; i < x.Desired.size(); i++) fout << x.Desired[i] << " ";
-  fout << endl;
-
-  return fout;
-}
-

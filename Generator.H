@@ -23,7 +23,7 @@ public:
   vector<Person> professors, students;
 
 private:
-  vector<Person> generatePeople(bool professor, int numPeople);
+  vector<Person> generatePeople(bool isProfessor, int numPeople);
   vector<int> randomUniqueNums(int n, int min, int max);
   int timeMin, timeMax;
   int numTimes, numDesires;

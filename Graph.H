@@ -12,7 +12,7 @@ using namespace std;
 class Graph {
 
 public:
-  void Initialize(string fName); // create graph data that will be basis for all future iterations; parses file and prunes graph
+  void Initialize(string fName, char delimiter); // create graph data that will be basis for all future iterations; parses file and prunes graph
 
   void InitialGreedyFill(default_random_engine& rng); // First greedy fill after random restart from base graph
   void ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng); // Iterative hill climbs' greedy fill on remaining Unconnected edges after removing one edge.
@@ -31,8 +31,8 @@ public:
 
 private:
   // initialize
-  void ReadInData(string fname); // Load professor/student vectors
-  void ParseGroup(vector<Person>& group, int groupSize, ifstream& fPopulation);
+  void ReadInData(string fName, char delimiter); // Load professor/student vectors
+  vector<Person> ParseGroup(ifstream& fPopulationv, bool isProfessor, char delimiter);
   void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
   
@@ -43,7 +43,7 @@ private:
   // file writing
   void WriteAvailabilities(ofstream& graphOut, char delimiter) const;
   void WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& graphOut,
-                                   pair<int, int> timeRange, char affiliation, char delimiter) const;
+                                   pair<int, int> timeRange, char delimiter) const;
   vector<vector<bool>> GenerateAvailabilityVector(const vector<Person>& group, pair<int, int> timeRange) const;
 
   void WriteSchedule(ofstream& graphOut, char delimiter) const;
@@ -51,9 +51,9 @@ private:
 };
 
 // core functions for running the random restart + hill climb algorithms on Graph
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool debug);
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose);
 void Climb(const int i, Graph& hillClimbG, Graph& bestG,
-           double& bestScore, int populationMultiplier, default_random_engine& rng, bool debug);
+           double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose);
 
 ostream& operator<<(ostream& os, const Graph&);
 

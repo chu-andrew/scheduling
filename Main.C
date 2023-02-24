@@ -19,7 +19,7 @@ int main() {
   const bool GENERATE_NEW_POP = true;
 
   const string DATA = "generated_population.csv";
-  const char DELIM = '\t';
+  const char DELIM = ',';
 
   default_random_engine RNG;
   if (SEED) {
@@ -32,18 +32,18 @@ int main() {
 
   if (GENERATE_NEW_POP) {
     const Generator GEN ( // change parameters as necessary
-      10, 10, // numProfs, numStudents
-      5, 6, // numTimes, numDesires
-      0, 9 // timeMin, timeMax
+      50, 50, // numProfs, numStudents
+      15, 30, // numTimes, numDesires
+      0, 25 // timeMin, timeMax
     );
     GEN.WritePopulation(DATA, DELIM);
   } // else use the file that has been generated previously or the real data file
 
   Graph G;
-  G.Initialize(DATA); // parse data from file, then prune impossible or non-mutual meetings
-  G.WriteGraphState("initial_graph.csv", DELIM);
+  G.Initialize(DATA, DELIM); // parse data from file, then prune impossible or non-mutual meetings
+  G.WriteGraphState("initial_graph.csv", DELIM); // initial_graph will not be the same as DATA because meetings have been pruned
 
-  G = RandomRestart(G, RNG, false); // debug=true displays hill climb progress for each restart
+  G = RandomRestart(G, RNG, true); // verbose=true displays hill climb progress for each restart
 
   G.WriteGraphState("schedule.csv", DELIM);
 }

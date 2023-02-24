@@ -28,19 +28,19 @@ Generator::Generator(int numProfs, int numStudents, int numTimes, int numDesires
 	students = generatePeople(false, numStudents);
 }
 
-vector<Person> Generator::generatePeople(bool professor, int numPeople) {
+vector<Person> Generator::generatePeople(bool isProfessor, int numPeople) {
 // Generate a random group of people under specified parameters
 	vector<Person> people;
 
 	for (int i = 0; i < numPeople; i++) {
 		Person person_i;
-		int minIdNum = professor ? IdRanges[0] : IdRanges[1];
+		int minIdNum = isProfessor ? IdRanges[0] : IdRanges[1];
 
-		person_i.professor = professor;
+		person_i.isProfessor = isProfessor;
 		person_i.Id = minIdNum + i;
 
 		person_i.Hours = randomUniqueNums(numTimes, timeMin, timeMax);
-		if (professor) person_i.InitDesired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
+		if (isProfessor) person_i.InitDesired = randomUniqueNums(numDesires, IdRanges[1], IdRanges[2] - 1);
 		else person_i.InitDesired = randomUniqueNums(numDesires, IdRanges[0], IdRanges[1] - 1);
 		person_i.Desired = person_i.InitDesired; // make a record of initial desires because desires will be pruned
 
@@ -74,29 +74,29 @@ vector<int> Generator::randomUniqueNums(int n, int min, int max) {
 void Generator::WritePopulation(string fname, char delimiter) const {
 	// write generated population to file
 	/*
-	numProf, numStud
-	profId, numDesires, numTimes, [desires], [times]
+	profId, [desires], , [times]
 	...
-	studId, numDesires, numTimes, [desires], [times]
+	[newline]
+	studId, [desires], , [times]
 	...
 	*/
 	ofstream population;
 	population.open(fname);
 
-	population << professors.size() << delimiter << students.size() << "\n";
-
 	for(const Person& x : professors) {
 		population << x.Id << delimiter;
-		population << x.Desired.size() << delimiter << x.Hours.size() << delimiter;
 		for(int desire : x.Desired) population << desire << delimiter;
+		population << delimiter;
 		for(int hour : x.Hours) population << hour << delimiter;
 		population << "\n";
 	}
+	
+	population << "\n";
 
 	for(const Person& x : students) {
 		population << x.Id << delimiter;
-		population << x.Desired.size() << delimiter << x.Hours.size() << delimiter;
 		for(int desire : x.Desired) population << desire << delimiter;
+		population << delimiter;
 		for(int hour : x.Hours) population << hour << delimiter;
 		population << "\n";
 	}

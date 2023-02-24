@@ -8,54 +8,63 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
 
 // INITIALIZATION
-void Graph::Initialize(string fName) {
-  ReadInData(fName);
+void Graph::Initialize(string fName, char delimiter) {
+  ReadInData(fName, delimiter);
   Prune();
   CreateEdges();
 }
 
-void Graph::ReadInData(string fName) {
+void Graph::ReadInData(string fName, char delimiter) {
 // Read in all the info about profs and students and create the vectors containing them.
 // read from generated WritePopulation() file or real data file to Graph
 
   ifstream fPopulation;
   fPopulation.open(fName);
 
-  int numProfs, numStuds;
-  fPopulation >> numProfs >> numStuds;
-
-  ParseGroup(Professors, numProfs, fPopulation);
-  ParseGroup(Students, numStuds, fPopulation);
-
+  Professors = ParseGroup(fPopulation, true, delimiter);
+  Students = ParseGroup(fPopulation, false, delimiter);
+  assert(Professors.size() > 0 && Students.size() > 0);
   fPopulation.close();
 }
 
-void Graph::ParseGroup(vector<Person>& group, int groupSize, ifstream& fPopulation) {
-  for (int i = 1; i <= groupSize; i++) {
+vector<Person> Graph::ParseGroup(ifstream& fPopulation, bool isProfessor, char delimiter) {
+  vector<Person> group;
+
+  string line;
+  while (getline(fPopulation, line)) {
+    stringstream lineStream(line);
+    if(line.empty()) break; // if newline is found, indicates new group (prof -> stud)
+    string item;
+
     Person x;
-    fPopulation >> x.Id;
+    x.isProfessor = isProfessor;
+    bool idFound = false;
+    bool desiresFound = false;
 
-    int numDesires, numTimes;
-    fPopulation >> numDesires >> numTimes;
-
-    int desire;
-    for (int j = 1; j <= numDesires; j++) {
-      fPopulation >> desire;
-      x.Desired.push_back(desire);
-    }
-
-    int time;
-    for (int j = 1; j <= numTimes; j++) {
-      fPopulation >> time;
-      x.Hours.push_back(time);
+    while (getline(lineStream, item, ',')) {
+      if(!idFound) {
+        x.Id = stoi(item);
+        idFound = true;
+      } else if(!desiresFound) {
+        if(item.empty()) {
+          desiresFound = true;
+          continue;
+        }
+        x.Desired.push_back(stoi(item));
+      } else {
+        x.Hours.push_back(stoi(item));
+      }
     }
     group.push_back(x);
   }
+  return group;
 }
 
 void Graph::Prune() {
@@ -195,21 +204,22 @@ void Graph::WriteAvailabilities(ofstream& graphOut, char delimiter) const {
   graphOut << "\n";
 
   // write availabilities per group
-  WriteAvailabilitiesForGroup(Professors, graphOut, timeRange, 'P', delimiter);
-  WriteAvailabilitiesForGroup(Students, graphOut, timeRange, 'S', delimiter);
+  WriteAvailabilitiesForGroup(Professors, graphOut, timeRange, delimiter);
+  WriteAvailabilitiesForGroup(Students, graphOut, timeRange, delimiter);
 }
 
 void Graph::WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& graphOut,
-                                        pair<int, int> timeRange, char affiliation, char delimiter) const {
+                                        pair<int, int> timeRange, char delimiter) const {
   vector<vector<bool>> availabilities = GenerateAvailabilityVector(group, timeRange);
+
+  char affiliation = group[0].isProfessor ? 'P' : 'S';
 
   for (int i = 0; i < availabilities.size(); i++) {
     graphOut << "[" << affiliation << group[i].Id << "]" << delimiter;
 
     for (int j = 0; j < availabilities[0].size(); j++) {
       bool available = availabilities[i][j];
-      if (available) graphOut << available << delimiter;
-      else graphOut << "." << delimiter;
+      graphOut << available << delimiter;
     }
     graphOut << "\n";
   }
@@ -282,28 +292,28 @@ vector<vector<int>> Graph::GenerateScheduleVector() const {
 
 // CORE FUNCTIONS
 // run random restart on graph while iterating
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool debug) {
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose) {
   Graph bestG = baseG;
   double bestScore = 0;
   if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
 
-  if (debug) cout << "restart#\tclimb#\tscore\tdelta" << endl;
+  if (verbose) cout << "restart#\tclimb#\tscore\tdelta" << endl;
   int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
 
   // random restart loop
-  for (int i = 0; i < populationMultiplier / 4 && bestScore < 1; i++) {
+  for (int i = 0; i < populationMultiplier / 10 && bestScore < 1; i++) {
     Graph hillClimbG = baseG;
     hillClimbG.InitialGreedyFill(rng);
     if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure of initial greedy fill
 
-    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, debug);
+    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, verbose);
   }
   cout << "BEST: " << bestScore << endl;
   return bestG;
 }
 
 // run hill climb on each random restarted graph
-void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool debug) {
+void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose) {
 // hill climb loop
   double currentScore = 0;
   for (int j = 0 ; j < populationMultiplier && currentScore < 1; j++) {
@@ -312,7 +322,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int 
     double climbScore = attemptG.AttemptClimb(currentScore, rng);
 
     if (climbScore > currentScore) { // evaluate climb attempt
-      if (debug) cout << i << "\t\t" << j << "\t" << climbScore << "\t" << climbScore - currentScore << endl;
+      if (verbose) cout << i << "\t\t" << j << "\t" << climbScore << "\t" << climbScore - currentScore << endl;
 
       // update graphs that have climbed
       currentScore = climbScore;
