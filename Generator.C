@@ -71,11 +71,35 @@ vector<int> Generator::randomUniqueNums(int n, int min, int max) {
 	return nums;
 }
 
-void WritePopulation(const Generator gen) {
-	ofstream population;
-	population.open("population.csv");
-
+void Generator::WritePopulation(string fname, char delimiter) const {
 	// write generated population to file
+	/*
+	numProf, numStud
+	profId, numDesires, numTimes, [desires], [times]
+	...
+	studId, numDesires, numTimes, [desires], [times]
+	...
+	*/
+	ofstream population;
+	population.open(fname);
+
+	population << professors.size() << delimiter << students.size() << "\n";
+
+	for(const Person& x : professors) {
+		population << x.Id << delimiter;
+		population << x.Desired.size() << delimiter << x.Hours.size() << delimiter;
+		for(int desire : x.Desired) population << desire << delimiter;
+		for(int hour : x.Hours) population << hour << delimiter;
+		population << "\n";
+	}
+
+	for(const Person& x : students) {
+		population << x.Id << delimiter;
+		population << x.Desired.size() << delimiter << x.Hours.size() << delimiter;
+		for(int desire : x.Desired) population << desire << delimiter;
+		for(int hour : x.Hours) population << hour << delimiter;
+		population << "\n";
+	}
 
 	population.close();
 }

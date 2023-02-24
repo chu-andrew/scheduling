@@ -18,7 +18,7 @@ public:
     int timeMin, int timeMax // earliest/latest available times among all people (inclusive bounds)
   );
   
-  void WritePopulation();
+  void WritePopulation(string fname, char delimiter) const;
 
   vector<Person> professors, students;
 

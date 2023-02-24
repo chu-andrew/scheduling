@@ -12,8 +12,7 @@ using namespace std;
 class Graph {
 
 public:
-  void ReadInData(Generator gen); // Load professor/student vectors
-  void Initialize(); // create graph data that will be basis for all future iterations
+  void Initialize(string fName); // create graph data that will be basis for all future iterations; parses file and prunes graph
 
   void InitialGreedyFill(default_random_engine& rng); // First greedy fill after random restart from base graph
   void ClimbGreedyFill(pair<int, int> removedEdge, default_random_engine& rng); // Iterative hill climbs' greedy fill on remaining Unconnected edges after removing one edge.
@@ -22,7 +21,7 @@ public:
   double Score() const;
 
   // write availabilities and schedule (meetings/desires) to file
-  void WriteGraphState(string fname, string delimiter) const;
+  void WriteGraphState(string fname, char delimiter) const;
 
   vector<Person> Professors;
   vector<Person> Students;
@@ -31,18 +30,23 @@ public:
   vector<pair<int, int>> Unconnected; // mutually desired meetings that are not currently fulfilled (profId, studId)
 
 private:
+  // initialize
+  void ReadInData(string fname); // Load professor/student vectors
+  void ParseGroup(vector<Person>& group, int groupSize, ifstream& fPopulation);
   void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
+  
+  // greedy fill helper functions
   void MakeScheduleGreedily(); // Random get pairs (prof,student) that mutually want to meet until stuck.
   pair<int, int> RemoveRandomEdge(); // Remove a random connected edge in preparation for hill climb
 
-
-  void WriteAvailabilities(ofstream& graphOut, string delimiter) const;
+  // file writing
+  void WriteAvailabilities(ofstream& graphOut, char delimiter) const;
   void WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& graphOut,
-                                   pair<int, int> timeRange, string affiliation, string delimiter) const;
+                                   pair<int, int> timeRange, char affiliation, char delimiter) const;
   vector<vector<bool>> GenerateAvailabilityVector(const vector<Person>& group, pair<int, int> timeRange) const;
 
-  void WriteSchedule(ofstream& graphOut, string delimiter) const;
+  void WriteSchedule(ofstream& graphOut, char delimiter) const;
   vector<vector<int>> GenerateScheduleVector() const;
 };
 

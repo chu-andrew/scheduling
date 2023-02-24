@@ -13,19 +13,49 @@ using namespace std;
 
 
 // INITIALIZATION
-void Graph::ReadInData(Generator gen) {
-// Read in all the info about profs and students and create the vectors containing them.
-  Professors = gen.professors;
-  Students = gen.students;
-}
-
-void ParsePopulation() {
-  // read from generated WritePopulation() file or real data file -> Graph of population
-}
-
-void Graph::Initialize() {
+void Graph::Initialize(string fName) {
+  ReadInData(fName);
   Prune();
   CreateEdges();
+}
+
+void Graph::ReadInData(string fName) {
+// Read in all the info about profs and students and create the vectors containing them.
+// read from generated WritePopulation() file or real data file to Graph
+
+  ifstream fPopulation;
+  fPopulation.open(fName);
+
+  int numProfs, numStuds;
+  fPopulation >> numProfs >> numStuds;
+
+  ParseGroup(Professors, numProfs, fPopulation);
+  ParseGroup(Students, numStuds, fPopulation);
+
+  fPopulation.close();
+}
+
+void Graph::ParseGroup(vector<Person>& group, int groupSize, ifstream& fPopulation) {
+  for (int i = 1; i <= groupSize; i++) {
+    Person x;
+    fPopulation >> x.Id;
+
+    int numDesires, numTimes;
+    fPopulation >> numDesires >> numTimes;
+
+    int desire;
+    for (int j = 1; j <= numDesires; j++) {
+      fPopulation >> desire;
+      x.Desired.push_back(desire);
+    }
+
+    int time;
+    for (int j = 1; j <= numTimes; j++) {
+      fPopulation >> time;
+      x.Hours.push_back(time);
+    }
+    group.push_back(x);
+  }
 }
 
 void Graph::Prune() {
@@ -130,30 +160,30 @@ double Graph::Score() const {
 }
 
 // FILE OUTPUT
-void Graph::WriteGraphState(string fname, string delimiter) const {
+void Graph::WriteGraphState(string fname, char delimiter) const {
   ofstream graphOut;
   graphOut.open(fname);
 
   graphOut << "Availabilities\n";
   WriteAvailabilities(graphOut, delimiter);
-  graphOut << "\nMutual Desires (X) / Meetings (int)\n";
+  graphOut << "\nPossible & Mutual Desires (X) / Meetings (int)\n";
   WriteSchedule(graphOut, delimiter);
 
   graphOut.close();
 }
 
-void Graph::WriteAvailabilities(ofstream& graphOut, string delimiter) const {
-  // find min and max time slot
+void Graph::WriteAvailabilities(ofstream& graphOut, char delimiter) const {
+  // find min and max time slot (relies on sorted availabilities)
   assert(Professors[0].Hours.size() > 0);
   int minTime = Professors[0].Hours[0];
   int maxTime = Professors[0].Hours.back();
-  for (int i = 1; i < Professors.size(); i++) {
-    if (Professors[i].Hours[0] < minTime) minTime = Professors[i].Hours[0];
-    if (Professors[i].Hours.back() > maxTime) maxTime =  Professors[i].Hours.back();
+  for (Person prof : Professors) {
+    if (prof.Hours[0] < minTime) minTime = prof.Hours[0];
+    if (prof.Hours.back() > maxTime) maxTime =  prof.Hours.back();
   }
-  for (int i = 0; i < Students.size(); i++) {
-    if (Students[i].Hours[0] < minTime) minTime = Students[i].Hours[0];
-    if (Students[i].Hours.back() > maxTime) maxTime = Students[i].Hours.back();
+  for (Person stud : Students) {
+    if (stud.Hours[0] < minTime) minTime = stud.Hours[0];
+    if (stud.Hours.back() > maxTime) maxTime = stud.Hours.back();
   }
   pair<int, int> timeRange = pair(minTime, maxTime);
 
@@ -165,12 +195,12 @@ void Graph::WriteAvailabilities(ofstream& graphOut, string delimiter) const {
   graphOut << "\n";
 
   // write availabilities per group
-  WriteAvailabilitiesForGroup(Professors, graphOut, timeRange, "P", delimiter);
-  WriteAvailabilitiesForGroup(Students, graphOut, timeRange, "S", delimiter);
+  WriteAvailabilitiesForGroup(Professors, graphOut, timeRange, 'P', delimiter);
+  WriteAvailabilitiesForGroup(Students, graphOut, timeRange, 'S', delimiter);
 }
 
 void Graph::WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& graphOut,
-                                        pair<int, int> timeRange, string affiliation, string delimiter) const {
+                                        pair<int, int> timeRange, char affiliation, char delimiter) const {
   vector<vector<bool>> availabilities = GenerateAvailabilityVector(group, timeRange);
 
   for (int i = 0; i < availabilities.size(); i++) {
@@ -178,7 +208,7 @@ void Graph::WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& g
 
     for (int j = 0; j < availabilities[0].size(); j++) {
       bool available = availabilities[i][j];
-      if(available) graphOut << available << delimiter;
+      if (available) graphOut << available << delimiter;
       else graphOut << "." << delimiter;
     }
     graphOut << "\n";
@@ -187,12 +217,11 @@ void Graph::WriteAvailabilitiesForGroup(const vector<Person>& group, ofstream& g
 
 vector<vector<bool>> Graph::GenerateAvailabilityVector(const vector<Person>& group, pair<int, int> timeRange) const {
   vector<vector<bool>> availabilities;
-  for (int i = 0; i < group.size(); i++) {
+  for (Person x : group) {
     vector<bool> personAvailable;
     personAvailable.resize(timeRange.second - timeRange.first + 1, false);
 
-    for (int j = 0; j < group[i].Hours.size(); j++) {
-      int hour = group[i].Hours[j];
+    for (int hour : x.Hours) {
       personAvailable[hour - timeRange.first] = true;
     }
     availabilities.push_back(personAvailable);
@@ -200,7 +229,7 @@ vector<vector<bool>> Graph::GenerateAvailabilityVector(const vector<Person>& gro
   return availabilities;
 }
 
-void Graph::WriteSchedule(ofstream& graphOut, string delimiter) const {
+void Graph::WriteSchedule(ofstream& graphOut, char delimiter) const {
   vector<vector<int>> schedule = GenerateScheduleVector();
   graphOut << "[P\\S]" << delimiter;
   for (int i = Professors.size(); i < Professors.size() + Students.size(); i++) {
@@ -230,21 +259,20 @@ vector<vector<int>> Graph::GenerateScheduleVector() const {
   int numStuds = Students.size();
 
   // fill out confirmed meetings
-  for (int i = 0; i < numProfs; i++) {
+  for (Person prof : Professors) {
     vector<int> profSchedule;
     profSchedule.resize(numStuds, -2); // no meeting = -2
 
-    for (int j = 0; j < Professors[i].MeetPersonAndTime.size(); j++) {
-      pair<int, int> meeting = Professors[i].MeetPersonAndTime[j];
+    for (pair<int, int> meeting : prof.MeetPersonAndTime) {
       profSchedule[meeting.first - numProfs] = meeting.second; // use id indexing (studId - profId)
     }
     schedule.push_back(profSchedule);
   }
 
   // fill out unfulfilled meetings
-  for (int i = 0; i < Unconnected.size(); i++) {
-    int prof = Unconnected[i].first;
-    int stud = Unconnected[i].second;
+  for (pair<int, int> x : Unconnected) {
+    int prof = x.first;
+    int stud = x.second;
 
     schedule[prof][stud - numProfs] = -1; // unfulfilled = -1
   }
@@ -298,7 +326,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int 
         bestG = hillClimbG;
 
         // reward hill climbs that have increased the score with more attempts
-        j = 0; // causes of decreases in hill climb# in output
+        j = 0; // will cause decreases in printed hill climb# in output
       }
     }
   }
