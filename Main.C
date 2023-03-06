@@ -8,6 +8,7 @@ using namespace std;
 
 
 int main() {
+  // run configuration
   /*
   change consts as necessary:
     SEED affects generation of population (if being generated) and shuffling of vectors during hill climbs
@@ -18,6 +19,7 @@ int main() {
   const bool SEED = false;
   const bool GENERATE_NEW_POP = true;
 
+  const bool VERBOSE_OUTPUT = false;
   const string DATA = "generated_population.csv";
   const char DELIM = ',';
 
@@ -43,7 +45,7 @@ int main() {
   G.Initialize(DATA, DELIM); // parse data from file, then prune impossible or non-mutual meetings
   G.WriteGraphState("initial_graph.csv", DELIM); // initial_graph will not be the same as DATA because meetings have been pruned
 
-  G = RandomRestart(G, RNG, true); // verbose=true displays hill climb progress for each restart
+  G = RandomRestart(G, RNG, VERBOSE_OUTPUT); // verbose=true displays hill climb progress for each restart
 
   G.WriteGraphState("schedule.csv", DELIM);
 }

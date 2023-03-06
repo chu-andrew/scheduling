@@ -316,7 +316,8 @@ Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose)
 void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose) {
 // hill climb loop
   double currentScore = 0;
-  for (int j = 0 ; j < populationMultiplier && currentScore < 1; j++) {
+  int climbLimit = populationMultiplier;
+  for (int j = 0 ; j < climbLimit && currentScore < 1; j++) {
     // create a new attempt object so that changes can be made without affecting the hillClimbG object
     Graph attemptG = hillClimbG; // return attempt graph to the best graph out of this restart (discard non-score-increasing changes)
     double climbScore = attemptG.AttemptClimb(currentScore, rng);
@@ -330,13 +331,13 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int 
 
       // update graphs that have climbed and are better than graphs from all restarts
       if (climbScore > bestScore) {
-        cout << "new best [restart #" << i << "]:\t" << climbScore << "*\t" << "delta(best): " << climbScore - bestScore << endl;
+        cout << "global max [restart " << i << " climb " << j << "]:\t" << climbScore << "\t" << "delta(best): " << climbScore - bestScore << endl;
 
         bestScore = currentScore;
         bestG = hillClimbG;
 
         // reward hill climbs that have increased the score with more attempts
-        j = 0; // will cause decreases in printed hill climb# in output
+        climbLimit += populationMultiplier;
       }
     }
   }
