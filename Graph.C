@@ -3,6 +3,7 @@
 #include "Generator.H"
 
 #include <vector>
+#include <tuple>
 #include <algorithm>
 #include <random>
 #include <cassert>
@@ -292,7 +293,7 @@ vector<vector<int>> Graph::GenerateScheduleVector() const {
 
 // CORE FUNCTIONS
 // run random restart on graph while iterating
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string fname, char delimiter) {
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter) {
   Graph bestG = baseG;
   double bestScore = 0;
   if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
@@ -306,17 +307,19 @@ Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose,
     hillClimbG.InitialGreedyFill(rng);
     if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure of initial greedy fill
 
-    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, verbose, fname, delimiter);
+    Climb(i, hillClimbG, bestG, bestScore, rng, verbose, scheduleFile, delimiter);
   }
   cout << "BEST: " << bestScore << endl;
   return bestG;
 }
 
 // run hill climb on each random restarted graph
-void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose, string fname, char delimiter) {
+void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter) {
 // hill climb loop
-  double currentScore = 0;
+  int populationMultiplier = bestG.Professors.size() * bestG.Students.size();
   int climbLimit = populationMultiplier;
+
+  double currentScore = 0;
   for (int j = 0 ; j < climbLimit && currentScore < 1; j++) {
     // create a new attempt object so that changes can be made without affecting the hillClimbG object
     Graph attemptG = hillClimbG; // return attempt graph to the best graph out of this restart (discard non-score-increasing changes)
@@ -335,7 +338,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int 
 
         bestScore = currentScore;
         bestG = hillClimbG;
-        bestG.WriteGraphState(fname, delimiter); // write to file every time new global best is found
+        bestG.WriteGraphState(scheduleFile, delimiter); // write to file every time new global best is found
 
         // reward hill climbs that have increased the score with more attempts
         climbLimit += populationMultiplier;
