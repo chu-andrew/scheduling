@@ -292,12 +292,12 @@ vector<vector<int>> Graph::GenerateScheduleVector() const {
 
 // CORE FUNCTIONS
 // run random restart on graph while iterating
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose) {
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string fname, char delimiter) {
   Graph bestG = baseG;
   double bestScore = 0;
   if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
 
-  if (verbose) cout << "restart#\tclimb#\tscore\tdelta" << endl;
+  if (verbose) cout << "restart#\tclimb#\tscore\tdelta" << endl; // output column headings
   int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
 
   // random restart loop
@@ -306,14 +306,14 @@ Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose)
     hillClimbG.InitialGreedyFill(rng);
     if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure of initial greedy fill
 
-    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, verbose);
+    Climb(i, hillClimbG, bestG, bestScore, populationMultiplier, rng, verbose, fname, delimiter);
   }
   cout << "BEST: " << bestScore << endl;
   return bestG;
 }
 
 // run hill climb on each random restarted graph
-void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose) {
+void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose, string fname, char delimiter) {
 // hill climb loop
   double currentScore = 0;
   int climbLimit = populationMultiplier;
@@ -335,6 +335,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, int 
 
         bestScore = currentScore;
         bestG = hillClimbG;
+        bestG.WriteGraphState(fname, delimiter); // write to file every time new global best is found
 
         // reward hill climbs that have increased the score with more attempts
         climbLimit += populationMultiplier;

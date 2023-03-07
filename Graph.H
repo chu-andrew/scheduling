@@ -32,7 +32,7 @@ public:
 private:
   // initialize
   void ReadInData(string fName, char delimiter); // Load professor/student vectors
-  vector<Person> ParseGroup(ifstream& fPopulationv, bool isProfessor, char delimiter);
+  vector<Person> ParseGroup(ifstream& fPopulation, bool isProfessor, char delimiter);
   void Prune(); // Delete people in Desired who do not mutually desire you or do not have overlapping availabilities.
   void CreateEdges(); // fill Edges vector after non-mutual meetings have been pruned
   
@@ -51,9 +51,9 @@ private:
 };
 
 // core functions for running the random restart + hill climb algorithms on Graph
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose);
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string fname, char delimiter);
 void Climb(const int i, Graph& hillClimbG, Graph& bestG,
-           double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose);
+           double& bestScore, int populationMultiplier, default_random_engine& rng, bool verbose, string fname, char delimiter);
 
 ostream& operator<<(ostream& os, const Graph&);
 

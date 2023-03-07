@@ -45,7 +45,5 @@ int main() {
   G.Initialize(DATA, DELIM); // parse data from file, then prune impossible or non-mutual meetings
   G.WriteGraphState("initial_graph.csv", DELIM); // initial_graph will not be the same as DATA because meetings have been pruned
 
-  G = RandomRestart(G, RNG, VERBOSE_OUTPUT); // verbose=true displays hill climb progress for each restart
-
-  G.WriteGraphState("schedule.csv", DELIM);
+  G = RandomRestart(G, RNG, VERBOSE_OUTPUT, "schedule.csv", DELIM); // verbose=true displays hill climb progress for each restart
 }
