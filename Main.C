@@ -19,7 +19,7 @@ int main() {
   const bool SEED = false;
   const bool GENERATE_NEW_POP = true;
 
-  const bool VERBOSE_COUT = false;
+  const bool VERBOSE_COUT = true;
   const string DATA_IN = "generated_population.csv";
   const string INITIAL_GRAPH = "initial_graph.csv";
   const string LOG = "log.csv";

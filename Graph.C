@@ -343,7 +343,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, defa
         bestG.WriteGraphState(scheduleFile, delimiter); // write to file every time new global best is found
 
         // reward hill climbs that have increased the score with more attempts
-        climbLimit += populationMultiplier;
+        climbLimit += populationMultiplier / 2;
       } else outputLog << delimiter;
       outputLog << endl;
     }
