@@ -17,7 +17,7 @@ int main() {
       should be turned on once, then can be turned off for subsequent reruns as needed
   */
   const bool SEED = false;
-  const bool GENERATE_NEW_POP = true;
+  const bool GENERATE_NEW_POP = false;
 
   const bool VERBOSE_COUT = true;
   const string DATA_IN = "generated_population.csv";
