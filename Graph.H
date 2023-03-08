@@ -51,9 +51,9 @@ private:
 };
 
 // core functions for running the random restart + hill climb algorithms on Graph
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter);
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string logFile, string scheduleFile, char delimiter);
 void Climb(const int i, Graph& hillClimbG, Graph& bestG,
-           double& bestScore, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter);
+           double& bestScore, default_random_engine& rng, bool verbose, ofstream& outputLog, string scheduleFile, char delimiter);
 
 ostream& operator<<(ostream& os, const Graph&);
 

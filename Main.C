@@ -19,8 +19,11 @@ int main() {
   const bool SEED = false;
   const bool GENERATE_NEW_POP = true;
 
-  const bool VERBOSE_OUTPUT = false;
-  const string DATA = "generated_population.csv";
+  const bool VERBOSE_COUT = false;
+  const string DATA_IN = "generated_population.csv";
+  const string INITIAL_GRAPH = "initial_graph.csv";
+  const string LOG = "log.csv";
+  const string SCHEDULE = "schedule.csv";
   const char DELIM = ',';
 
   default_random_engine RNG;
@@ -38,12 +41,12 @@ int main() {
       15, 30, // numTimes, numDesires
       0, 25 // timeMin, timeMax
     );
-    GEN.WritePopulation(DATA, DELIM);
-  } // else use the file that has been generated previously or the real data file
+    GEN.WritePopulation(DATA_IN, DELIM);
+  } // else use the file that has been generated previously or eventually the real data file
 
   Graph G;
-  G.Initialize(DATA, DELIM); // parse data from file, then prune impossible or non-mutual meetings
-  G.WriteGraphState("initial_graph.csv", DELIM); // initial_graph will not be the same as DATA because meetings have been pruned
+  G.Initialize(DATA_IN, DELIM); // parse data from file, then prune impossible or non-mutual meetings
+  G.WriteGraphState(INITIAL_GRAPH, DELIM); // initial_graph will not be the same as DATA_IN because meetings have been pruned
 
-  G = RandomRestart(G, RNG, VERBOSE_OUTPUT, "schedule.csv", DELIM); // verbose=true displays hill climb progress for each restart
+  G = RandomRestart(G, RNG, VERBOSE_COUT, LOG, SCHEDULE, DELIM);
 }

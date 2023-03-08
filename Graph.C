@@ -3,7 +3,6 @@
 #include "Generator.H"
 
 #include <vector>
-#include <tuple>
 #include <algorithm>
 #include <random>
 #include <cassert>
@@ -158,15 +157,7 @@ pair<int, int> Graph::RemoveRandomEdge() {
 
 double Graph::Score() const {
 // Score the graph: what proportion of desires have been fulfilled?
-  int fulfilled = 0;
-  int desired = 0;
-
-  for (Person student : Students) {
-    fulfilled += student.MeetPersonAndTime.size();
-    desired += student.Desired.size();
-  }
-  // cout << fulfilled << " " << desired << endl;
-  return fulfilled / (double) desired;
+  return Connected.size() / (double) (Connected.size() + Unconnected.size());
 }
 
 // FILE OUTPUT
@@ -260,7 +251,7 @@ void Graph::WriteSchedule(ofstream& graphOut, char delimiter) const {
     graphOut << "\n";
   }
 
-  graphOut << "Score: " << Score() << endl;
+  graphOut << "Score: " << Score() << " (" << Connected.size() << "/" << Connected.size() + Unconnected.size() << ")" << endl;
 }
 
 vector<vector<int>> Graph::GenerateScheduleVector() const {
@@ -293,12 +284,16 @@ vector<vector<int>> Graph::GenerateScheduleVector() const {
 
 // CORE FUNCTIONS
 // run random restart on graph while iterating
-Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter) {
+Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose, string logFile, string scheduleFile, char delimiter) {
   Graph bestG = baseG;
   double bestScore = 0;
   if (baseG.Unconnected.size() == 0) return baseG; // check if any meetings are possible at all
 
-  if (verbose) cout << "restart#\tclimb#\tscore\tdelta" << endl; // output column headings
+  ofstream outputLog;
+  outputLog.open(logFile);
+  outputLog << "restart" << delimiter << "climb" << delimiter << "score" << delimiter << "delta(local_max)" << delimiter << "delta(global_max)" << endl;
+  if (verbose) cout << "restart#\tclimb#\tscore\tdelta(local_max)" << endl; // output column headings
+  
   int populationMultiplier = baseG.Professors.size() * baseG.Students.size();
 
   // random restart loop
@@ -307,14 +302,19 @@ Graph RandomRestart(const Graph baseG, default_random_engine& rng, bool verbose,
     hillClimbG.InitialGreedyFill(rng);
     if (hillClimbG.Connected.size() == 0) continue; // disregard complete failure of initial greedy fill
 
-    Climb(i, hillClimbG, bestG, bestScore, rng, verbose, scheduleFile, delimiter);
+    Climb(i, hillClimbG, bestG, bestScore, rng, verbose, outputLog, scheduleFile, delimiter);
   }
+
   cout << "BEST: " << bestScore << endl;
+
+  outputLog << "BEST: " << bestScore << endl;
+  outputLog.close();
+
   return bestG;
 }
 
 // run hill climb on each random restarted graph
-void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, default_random_engine& rng, bool verbose, string scheduleFile, char delimiter) {
+void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, default_random_engine& rng, bool verbose, ofstream& outputLog, string scheduleFile, char delimiter) {
 // hill climb loop
   int populationMultiplier = bestG.Professors.size() * bestG.Students.size();
   int climbLimit = populationMultiplier;
@@ -326,6 +326,7 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, defa
     double climbScore = attemptG.AttemptClimb(currentScore, rng);
 
     if (climbScore > currentScore) { // evaluate climb attempt
+      outputLog << i << delimiter << j << delimiter << climbScore << delimiter << climbScore - currentScore << delimiter;
       if (verbose) cout << i << "\t\t" << j << "\t" << climbScore << "\t" << climbScore - currentScore << endl;
 
       // update graphs that have climbed
@@ -334,7 +335,8 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, defa
 
       // update graphs that have climbed and are better than graphs from all restarts
       if (climbScore > bestScore) {
-        cout << "global max [restart " << i << " climb " << j << "]:\t" << climbScore << "\t" << "delta(best): " << climbScore - bestScore << endl;
+        outputLog << climbScore - bestScore << delimiter;
+        cout << "global max [restart " << i << ", climb " << j << "]:\t" << climbScore << "\t" << "delta(global_max): " << climbScore - bestScore << endl;
 
         bestScore = currentScore;
         bestG = hillClimbG;
@@ -342,7 +344,8 @@ void Climb(const int i, Graph& hillClimbG, Graph& bestG, double& bestScore, defa
 
         // reward hill climbs that have increased the score with more attempts
         climbLimit += populationMultiplier;
-      }
+      } else outputLog << delimiter;
+      outputLog << endl;
     }
   }
 }
